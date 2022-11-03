@@ -56,8 +56,9 @@ def graph_construction():
     graph = nx.Graph()
 
     temperature_min = 10  # minimum value of terperature
+    mass_iteration = [0]
     k_iteration = 0
-    k_iteration_max = 2
+    k_iteration_max = 6
     mass_all_trail_weight = []
     mass_all_trail = []
     mass_changes = [[0, 0]]
@@ -69,11 +70,13 @@ def graph_construction():
     length_original_route = calculation_length_zero_level(zero_trail, table_graph)
     mass_all_trail_weight.append(length_original_route[0])
     # print(length_original_route[0], length_original_route[1])
-    while mass_temperature[-1] > temperature_min or k_iteration_max > k_iteration:
-        print(k_iteration)
-        new_level_graph_trail = random_change(length_original_route[1], mass_changes)
+    while mass_temperature[-1] > temperature_min and k_iteration_max > mass_iteration[-1]:
+        print()
+        new_level_graph_trail = random_change(length_original_route[1], mass_changes, mass_iteration)
+        # print('Level 2')
         level = calculation_length_next_level(length_original_route[1], table_graph)
-        annealing(mass_all_trail_weight, level[0], new_level_graph_trail[0], k_iteration, mass_temperature)
+        # print('Level 3')
+        annealing(mass_all_trail_weight, level[0], new_level_graph_trail[0], mass_iteration, mass_temperature)
 
     pos = nx.spring_layout(graph)
     nx.draw(graph, pos, with_labels=1)
@@ -81,27 +84,38 @@ def graph_construction():
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
 
 
-def annealing(mass_all_trail_weight, new_trail, new_level_graph_trail, k_iteration, mass_temperature):
-    k_iteration += 1
-    print(k_iteration, ' ==================================================')
-    # print(mass_all_trail_weight[-1], new_trail)
-    delta = new_level_graph_trail[-1] - new_trail
-    # print(delta)
+def annealing(mass_all_trail_weight, new_trail, new_level_graph_trail, mass_iteration, mass_temperature):
+    mass_iteration.append(mass_iteration[-1] + 1)
+    print(mass_iteration[-1], ' <- iteration')
+    print(f'OLD S - {mass_all_trail_weight[-1]}')
+    print(f'NEW S - {new_trail}')
+    # print(mass_all_trail_weight[0], new_trail)
+    delta = new_trail - mass_all_trail_weight[-1]
+    print(f'delta = {new_trail}', '-', f'{mass_all_trail_weight[-1]} = {delta}')
     if delta < 0:
-        # print(mass_temperature[0] / math.log(1 + k_iteration))
-        mass_temperature.append(mass_temperature[0] / math.log(1 + k_iteration))
-        mass_all_trail_weight.append(new_level_graph_trail)
+        print(f'{delta} < 0')
+        print('Расчёт температуры:')
+        print(f'{mass_temperature[-1]} / {math.log(1 + mass_iteration[-1])}')
+        new_temp = round(mass_temperature[-1] / math.log(1 + mass_iteration[-1]))
+        mass_temperature.append(new_temp)
+        print(f'Новая температура - {mass_temperature[-1]}')
+        mass_all_trail_weight.append(new_trail)
         # print(new_level_graph_trail)
     elif delta > 0:
-        p = (mass_temperature[-1] * math.e) ** (- new_trail / mass_temperature[0])
-        random_p = random.randint(1, mass_temperature[-1])
+        print(f'delta > 0')
+        p = str((mass_temperature[-1] * math.e) ** (- new_trail / mass_temperature[0]))
+        p = float(p[0] + p[1] + p[2] + p[3] + p[4] + p[5])
+        random_p = round(random.randint(1, mass_temperature[-1]), 3)
+        # print(random_p)
+        print(f'{p} =?= {random_p}')
         if p > random_p:
+            print(f'{p} > {random_p}')
             print('от 1 до температуры)))))))))))))))))))))_))')
-            mass_all_trail_weight.append(new_level_graph_trail)
+            mass_all_trail_weight.append(new_trail)
             print(mass_all_trail_weight)
-    print('========================================')
-
-
+        else:
+            mass_all_trail_weight.append(mass_all_trail_weight[-1])
+    print('=' * 100)
 
 
 def calculation_length_zero_level(zero_trail, table_graph):
@@ -114,13 +128,13 @@ def calculation_length_zero_level(zero_trail, table_graph):
             if trail_old[i] == table_graph[j][0] and trail_old[i + 1] == table_graph[j][1] or \
                     trail_old[i + 1] == table_graph[j][0] and trail_old[i] == table_graph[j][1]:
                 length_original_route += table_graph[j][2]
-    print('S0 =', length_original_route)
+    # print('S0 =', length_original_route)
     return [length_original_route, trail_old]
 
 
 def calculation_length_next_level(zero_trail, table_graph):
-    print('-----')
-    print(zero_trail, table_graph)
+    # print('-----')
+    # print(zero_trail, table_graph)
     length_route = 0
     trail_old = zero_trail
 
@@ -130,12 +144,12 @@ def calculation_length_next_level(zero_trail, table_graph):
             if trail_old[i] == table_graph[j][0] and trail_old[i + 1] == table_graph[j][1] or \
                     trail_old[i + 1] == table_graph[j][0] and trail_old[i] == table_graph[j][1]:
                 length_route += table_graph[j][2]
-                print(table_graph[j][0], table_graph[j][1], table_graph[j][2])
-    print('S =', length_route)
+                # print(table_graph[j][0], table_graph[j][1], table_graph[j][2])
+    # print('S =', length_route)
     return length_route, trail_old
 
 
-def random_change(zero_trail, mass_changes):
+def random_change(zero_trail, mass_changes, mass_iteration):
     count = 0
     trail_change_mass = zero_trail
     mass_to_changes = False
@@ -144,20 +158,23 @@ def random_change(zero_trail, mass_changes):
         second_number = random.randint(1, 6)
         if first_number != second_number:
             for i in range(len(mass_changes)):
-                print(mass_changes[i][0], first_number, second_number, mass_changes[i][1])
+                # print(mass_changes[i][0], first_number, second_number, mass_changes[i][1])
                 if mass_changes[i][0] == first_number and second_number == mass_changes[i][1]:
                     count = False
             if count is not False:
                 mass_changes.append([first_number, second_number])
                 mass_to_changes = True
-    print(mass_changes)
-    print(trail_change_mass)
+    # print(mass_changes)
+    # print(trail_change_mass)
     for i in range(len(trail_change_mass)):
         if trail_change_mass[i] == mass_changes[-1][0]:
             trail_change_mass[i] = mass_changes[-1][1]
         elif trail_change_mass[i] == mass_changes[-1][1]:
             trail_change_mass[i] = mass_changes[-1][0]
-    print(trail_change_mass)
+    print(f'Путь №{mass_iteration[-1]} = ', end='')
+    for i in trail_change_mass:
+        print(i, end=' -> ')
+    print()
     return trail_change_mass, mass_changes
 
 
