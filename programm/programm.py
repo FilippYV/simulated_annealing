@@ -6,34 +6,32 @@ import matplotlib.pyplot as plt
 temperature_min = 10  # minimum value of terperature
 
 
-def initializing_variables():
-    number_of_vertices = 6
-    # number_of_vertices = int(input("Введите количество вершин - "))
-    return number_of_vertices
+# def initializing_variables():
+#     number_of_vertices = 6
+#     # number_of_vertices = int(input("Введите количество вершин - "))
+#     return number_of_vertices
 
 
-def len_calculations():
-    number_of_vertices = initializing_variables()
+def random_len_calculations(number_of_vertices):
     len_weight = []
-    # for i in range(1, number_of_vertices + 1):
-    #     for j in range(i + 1, number_of_vertices + 1):
-    #         len_weight.append([i, j, random.randint(50, 101)])
-    len_weight = [[1, 2, 52], [1, 3, 73], [1, 4, 87], [1, 5, 66], [1, 6, 89], [2, 3, 60], [2, 4, 59], [2, 5, 54],
-                  [2, 6, 90], [3, 4, 100], [3, 5, 79], [3, 6, 79], [4, 5, 58], [4, 6, 93], [5, 6, 69]]
-    # print(len_weight)
+    for i in range(1, number_of_vertices + 1):
+        for j in range(i + 1, number_of_vertices + 1):
+            len_weight.append([i, j, random.randint(50, 101)])
+    # len_weight = [[1, 2, 52], [1, 3, 73], [1, 4, 87], [1, 5, 66], [1, 6, 89], [2, 3, 60], [2, 4, 59], [2, 5, 54],
+    #               [2, 6, 90], [3, 4, 100], [3, 5, 79], [3, 6, 79], [4, 5, 58], [4, 6, 93], [5, 6, 69]]
+    print(len_weight)
     return len_weight
 
 
-def len_weight_write_in_graph(graph):
-    len_weight = len_calculations()
+def len_weight_write_in_graph(graph, number_of_vertices):
+    len_weight = random_len_calculations(number_of_vertices)
     for i in range(len(len_weight)):
         graph.add_edge(len_weight[i][0], len_weight[i][1], weight=len_weight[i][2])
     # print(len_weight)
     return len_weight
 
 
-def trail_calculation():
-    number_of_vertices = initializing_variables()
+def trail_calculation(number_of_vertices):
     trail = []
     while len(trail) != number_of_vertices:
         cache = random.randint(1, number_of_vertices)
@@ -44,27 +42,28 @@ def trail_calculation():
     return trail
 
 
-def graph_construction():
+def graph_construction(k_iteration_max, number_of_vertices):
     graph = nx.Graph()
-    minimum_temperature = 10  # minimum value of terperature
+    minimum_temperature = 20  # minimum value of terperature
     mass_iteration = [1]
-    k_iteration_max = 200
     mass_all_trail_weight = []
     mass_all_trail = []
     mass_temperature = [100]
 
-    table_graph = len_weight_write_in_graph(graph)
-    zero_trail = trail_calculation()
+    table_graph = len_weight_write_in_graph(graph, number_of_vertices)
+    zero_trail = trail_calculation(number_of_vertices)
     mass_all_trail.append(zero_trail)
     length_original_route = calculation_length_zero_level(zero_trail, table_graph)
     mass_all_trail_weight.append(length_original_route[0])
-    while mass_temperature[-1] > minimum_temperature and k_iteration_max + 1 > len(mass_iteration):
+    while mass_temperature[-1] > minimum_temperature and k_iteration_max > len(mass_iteration):
         print()
-        new_level_graph_trail = random_change_road(mass_all_trail, mass_iteration)
+        random_change_road(mass_all_trail, mass_iteration)
         level = calculation_length_next_level(length_original_route[1], table_graph)
         annealing(mass_all_trail_weight, level[0], mass_iteration, mass_temperature)
-    print(f'Финальный вариант пути: {mass_all_trail_weight}')
-
+    print(f'Рассмотрим путь №{mass_iteration[-1]} S = {mass_all_trail_weight[-1]}')
+    for i in mass_all_trail[-1]:
+        print(i, end=' -> ')
+    print()
     pos = nx.spring_layout(graph)
     nx.draw(graph, pos, with_labels=1)
     edge_labels = nx.get_edge_attributes(graph, 'weight')
@@ -124,6 +123,7 @@ def calculation_length_next_level(zero_trail, table_graph):
             if trail_old[i] == table_graph[j][0] and trail_old[i + 1] == table_graph[j][1] or \
                     trail_old[i + 1] == table_graph[j][0] and trail_old[i] == table_graph[j][1]:
                 length_route += table_graph[j][2]
+    print(length_route, trail_old)
     return length_route, trail_old
 
 
@@ -146,7 +146,6 @@ def random_change_road(mass_all_trail, mass_iteration):
     for i in trail_change_mass:
         print(i, end=' -> ')
     print()
-    return trail_change_mass
 
 
 # def calculation_annealing():
@@ -159,5 +158,10 @@ def random_change_road(mass_all_trail, mass_iteration):
 
 
 if __name__ == '__main__':
-    graph_construction()
-    # plt.show()
+    # number_of_vertices = int(input("Введите вершин графа: "))
+    number_of_vertices = 3
+    # k_iteration_max = int(input("Введите максимальное число итераций: "))
+    k_iteration_max = 16
+
+    graph_construction(k_iteration_max, number_of_vertices)
+    plt.show()
