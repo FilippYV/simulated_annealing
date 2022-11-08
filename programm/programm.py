@@ -159,9 +159,9 @@ def random_change_road(mass_all_trail, mass_iteration):
 
 if __name__ == '__main__':
     # number_of_vertices = int(input("Введите вершин графа: "))
-    number_of_vertices = 3
+    number_of_vertices = 6
     # k_iteration_max = int(input("Введите максимальное число итераций: "))
-    k_iteration_max = 16
+    k_iteration_max = 100
 
     graph_construction(k_iteration_max, number_of_vertices)
     plt.show()
