@@ -2,17 +2,17 @@ import math
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
+import pandas as pd
 
 
 def graph_construction(k_iteration_max, count_of_vertices, minimum_temperature):
     graph = nx.Graph()
-    graph_final = nx.Graph()
     mass_iteration = [0]
     mass_all_trail_weight = []
     mass_all_trail = []
     mass_temperature = [100]
     mass_changes = []
-    mass_iteration_count = []
+    mass_iteration_count = [0]
 
     table_graph = len_weight_write_in_graph(graph, count_of_vertices)
     trail_calculation(count_of_vertices, mass_all_trail)
@@ -21,7 +21,7 @@ def graph_construction(k_iteration_max, count_of_vertices, minimum_temperature):
     nx.draw(graph, pos, with_labels=1)
     edge_labels = nx.get_edge_attributes(graph, 'weight')
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
-    # plt.show()
+    plt.savefig('../static/1.png')
     while mass_temperature[-1] > minimum_temperature and k_iteration_max + 1 > len(mass_iteration):
         print()
         random_change_road(mass_all_trail, count_of_vertices, mass_changes)
@@ -39,7 +39,20 @@ def graph_construction(k_iteration_max, count_of_vertices, minimum_temperature):
         print(i, end=' -> ')
     print(f'\nS = {mass_all_trail_weight[-1]}, ответ найден на - {mass_iteration_count[-1]} шаге')
     print(f'{mass_iteration_count}  {mass_all_trail_weight}')
-    graph_final_data(graph_final, count_of_vertices, mass_all_trail[-1], table_graph)
+    graph_final_data(count_of_vertices, mass_all_trail[-1], table_graph)
+    create_plots(mass_iteration_count, mass_all_trail_weight)
+
+
+def create_plots(mass_iteration_count, mass_all_trail_weight):
+    fig3, axs3 = plt.subplots(1)
+
+    fig3 = pd.DataFrame({'voltage': mass_iteration_count, 'val': mass_all_trail_weight})
+    # fig3 = plt.plot(mass_iteration_count, mass_all_trail_weight)
+    axs3 = fig3.plot.bar(x='voltage', y='val', rot=0)
+    axs3.set_xlabel('Итерации')
+    axs3.set_ylabel('Длинна пути')
+    axs3.set_title('График показывающий уменьшении пути по итерациям')
+    plt.savefig('../static/3.png')
 
 
 def len_weight_write_in_graph(graph, count_of_vertices):
@@ -171,17 +184,19 @@ def annealing(mass_all_trail_weight, new_trail, mass_iteration, mass_temperature
     print('=' * 100)
 
 
-def graph_final_data(graph_final, count_of_vertices, mass_all_trail, table_graph):
+def graph_final_data(count_of_vertices, mass_all_trail, table_graph):
+    graph_final = nx.Graph()
+    fig2, axs2 = plt.subplots(1)
     for i in range(len(mass_all_trail) - 1):
         for j in range(len(table_graph)):
             if mass_all_trail[i] == table_graph[j][0] and mass_all_trail[i + 1] == table_graph[j][1] or \
                     mass_all_trail[i + 1] == table_graph[j][0] and mass_all_trail[i] == table_graph[j][1]:
                 graph_final.add_edge(table_graph[j][0], table_graph[j][1], weight=table_graph[j][2])
-    pos1 = nx.spring_layout(graph_final)
-    nx.draw(graph_final, pos1, with_labels=1)
+    fig2 = nx.spring_layout(graph_final)
+    nx.draw(graph_final, fig2, with_labels=1)
     edge_labelss = nx.get_edge_attributes(graph_final, 'weight')
-    nx.draw_networkx_edge_labels(graph_final, pos1, edge_labels=edge_labelss)
-    # plt.show()
+    nx.draw_networkx_edge_labels(graph_final, fig2, edge_labels=edge_labelss)
+    plt.savefig('../static/2.png')
 
 
 if __name__ == '__main__':
