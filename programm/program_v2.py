@@ -1,5 +1,7 @@
 import math
 import random
+import time
+
 import networkx as nx
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -10,7 +12,7 @@ def graph_construction(k_iteration_max, count_of_vertices, minimum_temperature):
     mass_iteration = [0]
     mass_all_trail_weight = []
     mass_all_trail = []
-    mass_temperature = [100]
+    mass_temperature = [250]
     mass_changes = []
     mass_iteration_count = [0]
 
@@ -23,8 +25,8 @@ def graph_construction(k_iteration_max, count_of_vertices, minimum_temperature):
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
     plt.savefig('../static/1.png')
     while mass_temperature[-1] > minimum_temperature and k_iteration_max + 1 > len(mass_iteration):
-        print()
-        random_change_road(mass_all_trail, count_of_vertices, mass_changes)
+        x = random_change_road(mass_all_trail, count_of_vertices)
+        mass_all_trail.append(x)
         length_trail_new = calculation_length_trail_new(mass_all_trail[-1], table_graph)
         annealing(mass_all_trail_weight, length_trail_new, mass_iteration,
                   mass_temperature, mass_iteration_count, mass_all_trail)
@@ -38,9 +40,10 @@ def graph_construction(k_iteration_max, count_of_vertices, minimum_temperature):
     for i in mass_all_trail[-1]:
         print(i, end=' -> ')
     print(f'\nS = {mass_all_trail_weight[-1]}, ответ найден на - {mass_iteration_count[-1]} шаге')
-    print(f'{mass_iteration_count}  {mass_all_trail_weight}')
     graph_final_data(count_of_vertices, mass_all_trail[-1], table_graph)
     create_plots(mass_iteration_count, mass_all_trail_weight)
+    print(f'{mass_iteration_count}\n{mass_all_trail_weight}\n{mass_all_trail}')
+
 
 
 def create_plots(mass_iteration_count, mass_all_trail_weight):
@@ -100,37 +103,39 @@ def calculation_length_trail_new(last_trail, table_graph):
         for j in range(len(table_graph)):
             if last_trail[i] == table_graph[j][0] and last_trail[i + 1] == table_graph[j][1] or \
                     last_trail[i + 1] == table_graph[j][0] and last_trail[i] == table_graph[j][1]:
-                # print(last_trail[i], '  ', table_graph[j][0])
-                # print(last_trail[i + 1], '  ', table_graph[j][1])
-                # print(last_trail[i + 1], '  ', table_graph[j][0])
-                # print(last_trail[i], '  ', table_graph[j][1])
                 length_original_route += table_graph[j][2]
     return length_original_route
 
 
-def random_change_road(mass_all_trail, count_of_vertices, mass_changes):
-    trail_change_mass = mass_all_trail[-1]
-    mass_to_changes = False
+def cam(new_mass_all_trail):
+    ops = []
+    for i in new_mass_all_trail:
+        ops.append(str(i))
+    for i in range(len(ops)):
+        ops[i] = int(ops[i])
+    return ops
+
+
+def random_change_road(new_mass_all_trail, count_of_vertices):
+    new_trail_new = cam(new_mass_all_trail[-1])
     close_peaks = False
-    while mass_to_changes is not True:
+    while True:
         first_number = round(random.randrange(1, count_of_vertices))
         second_number = round(random.randrange(1, count_of_vertices))
         if first_number != second_number:
-            for i in range(1, len(trail_change_mass)-1):
-                if trail_change_mass[i] == first_number and trail_change_mass[i + 1] == second_number \
-                        or trail_change_mass[i + 1] == first_number and trail_change_mass[i] == second_number:
+            for i in range(1, len(new_trail_new) - 1):
+                if new_trail_new[i] == first_number and new_trail_new[i + 1] == second_number \
+                        or new_trail_new[i + 1] == first_number and new_trail_new[i] == second_number:
                     close_peaks = True
-            if not close_peaks:
-                for i in range(len(trail_change_mass)):
-                    if trail_change_mass[i] == second_number:
-                        trail_change_mass[i] = first_number
-                    elif trail_change_mass[i] == first_number:
-                        trail_change_mass[i] = second_number
-                if trail_change_mass in mass_all_trail:
-                    mass_changes.append([first_number, second_number])
-                    mass_to_changes = True
-                    mass_all_trail.append(trail_change_mass)
+            if close_peaks is False:
+                for j in range(len(new_trail_new)):
+                    if new_trail_new[j] == second_number:
+                        new_trail_new[j] = first_number
+                    elif new_trail_new[j] == first_number:
+                        new_trail_new[j] = second_number
+                return new_trail_new
         close_peaks = False
+
     # print(f'Рассмотрим новый путь №{mass_iteration[-1]} = ', end='')
     # for i in trail_change_mass:
     #     print(i, end=' -> ')
@@ -177,7 +182,7 @@ def annealing(mass_all_trail_weight, new_trail, mass_iteration, mass_temperature
             print(f'{p} < {random_p}')
             print('Не принимаем маршрут!')
             print('Старый путь: ')
-            for i in mass_all_trail[mass_iteration_count[-1]-1]:
+            for i in mass_all_trail[mass_iteration_count[-1] - 1]:
                 print(i, end=' -> ')
             print()
             # mass_all_trail_weight.append(mass_all_trail_weight[-1])
@@ -186,7 +191,7 @@ def annealing(mass_all_trail_weight, new_trail, mass_iteration, mass_temperature
 
 def graph_final_data(count_of_vertices, mass_all_trail, table_graph):
     graph_final = nx.Graph()
-    fig2, axs2 = plt.subplots(1)
+    # fig2, axs2 = plt.subplots(1)
     for i in range(len(mass_all_trail) - 1):
         for j in range(len(table_graph)):
             if mass_all_trail[i] == table_graph[j][0] and mass_all_trail[i + 1] == table_graph[j][1] or \
@@ -206,7 +211,7 @@ if __name__ == '__main__':
     k_iteration_max = 200
     # k_iteration_max = 400
     # k_iteration_max = int(input("Введите минимаотную температуру: "))
-    minimum_temperature = 20
+    minimum_temperature = 25
 
     graph_construction(k_iteration_max, count_of_vertices, minimum_temperature)
     # plt.show()
