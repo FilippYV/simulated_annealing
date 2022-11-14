@@ -1,6 +1,5 @@
 import math
 import random
-import time
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -44,10 +43,8 @@ def graph_construction(k_iteration_max, count_of_vertices, minimum_temperature):
     print(f'{mass_iteration_count}\n{mass_all_trail_weight}\n{mass_all_trail}')
 
 
-
 def create_plots(mass_iteration_count, mass_all_trail_weight):
     fig3, axs3 = plt.subplots(1)
-
     fig3 = pd.DataFrame({'voltage': mass_iteration_count, 'val': mass_all_trail_weight})
     # fig3 = plt.plot(mass_iteration_count, mass_all_trail_weight)
     axs3 = fig3.plot.bar(x='voltage', y='val', rot=0)
@@ -191,7 +188,7 @@ def annealing(mass_all_trail_weight, new_trail, mass_iteration, mass_temperature
 
 def graph_final_data(count_of_vertices, mass_all_trail, table_graph):
     graph_final = nx.Graph()
-    # fig2, axs2 = plt.subplots(1)
+    fig2, axs2 = plt.subplots(1)
     for i in range(len(mass_all_trail) - 1):
         for j in range(len(table_graph)):
             if mass_all_trail[i] == table_graph[j][0] and mass_all_trail[i + 1] == table_graph[j][1] or \
@@ -208,7 +205,7 @@ if __name__ == '__main__':
     # number_of_vertices = int(input("Введите вершин графа: "))
     count_of_vertices = 6
     # k_iteration_max = int(input("Введите максимальное число итераций: "))
-    k_iteration_max = int(math.factorial(count_of_vertices-1)/2)
+    k_iteration_max = int(math.factorial(count_of_vertices - 1))
     # k_iteration_max = 400
     # k_iteration_max = int(input("Введите минимаотную температуру: "))
     minimum_temperature = 25
