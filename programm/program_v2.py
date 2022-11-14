@@ -12,7 +12,7 @@ def graph_construction(k_iteration_max, count_of_vertices, minimum_temperature):
     mass_iteration = [0]
     mass_all_trail_weight = []
     mass_all_trail = []
-    mass_temperature = [250]
+    mass_temperature = [100]
     mass_changes = []
     mass_iteration_count = [0]
 
@@ -25,8 +25,7 @@ def graph_construction(k_iteration_max, count_of_vertices, minimum_temperature):
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
     plt.savefig('../static/1.png')
     while mass_temperature[-1] > minimum_temperature and k_iteration_max + 1 > len(mass_iteration):
-        x = random_change_road(mass_all_trail, count_of_vertices)
-        mass_all_trail.append(x)
+        mass_all_trail.append(random_change_road(mass_all_trail, count_of_vertices))
         length_trail_new = calculation_length_trail_new(mass_all_trail[-1], table_graph)
         annealing(mass_all_trail_weight, length_trail_new, mass_iteration,
                   mass_temperature, mass_iteration_count, mass_all_trail)
@@ -133,7 +132,8 @@ def random_change_road(new_mass_all_trail, count_of_vertices):
                         new_trail_new[j] = first_number
                     elif new_trail_new[j] == first_number:
                         new_trail_new[j] = second_number
-                return new_trail_new
+                if new_trail_new not in new_mass_all_trail:
+                    return new_trail_new
         close_peaks = False
 
     # print(f'Рассмотрим новый путь №{mass_iteration[-1]} = ', end='')
@@ -208,7 +208,7 @@ if __name__ == '__main__':
     # number_of_vertices = int(input("Введите вершин графа: "))
     count_of_vertices = 6
     # k_iteration_max = int(input("Введите максимальное число итераций: "))
-    k_iteration_max = 200
+    k_iteration_max = int(math.factorial(count_of_vertices-1)/2)
     # k_iteration_max = 400
     # k_iteration_max = int(input("Введите минимаотную температуру: "))
     minimum_temperature = 25

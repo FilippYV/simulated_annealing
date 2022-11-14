@@ -56,7 +56,6 @@ def graph_construction(k_iteration_max, number_of_vertices):
     length_original_route = calculation_length_zero_level(zero_trail, table_graph)
     mass_all_trail_weight.append(length_original_route[0])
     while mass_temperature[-1] > minimum_temperature and k_iteration_max > len(mass_iteration):
-        print()
         random_change_road(mass_all_trail, mass_iteration)
         level = calculation_length_next_level(length_original_route[1], table_graph)
         annealing(mass_all_trail_weight, level[0], mass_iteration, mass_temperature)
